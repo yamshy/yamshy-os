@@ -3,24 +3,19 @@ set -euo pipefail
 
 echo "Installing Cursor AI Code Editor..."
 
-# Get the latest Cursor RPM download URL
-echo "Fetching latest Cursor download URL..."
-DOWNLOAD_URL=$(curl -s "https://www.cursor.com/api/download" \
-  -H "Accept: application/json" \
-  -H "User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36" \
-  --data-raw '{"platform":"linux-x64","arch":"x64","releaseTrack":"stable","format":"rpm"}' \
-  | grep -o '"url":"[^"]*"' | cut -d'"' -f4)
+# Use the specific URL you provided as it's known to work
+# This may need periodic updates when new versions are released
+DOWNLOAD_URL="https://downloads.cursor.com/production/6af2d906e8ca91654dd7c4224a73ef17900ad735/linux/x64/rpm/x86_64/cursor-1.6.26.el8.x86_64.rpm"
 
-if [ -z "$DOWNLOAD_URL" ]; then
-  echo "Error: Failed to get Cursor download URL"
-  exit 1
-fi
-
-echo "Download URL: $DOWNLOAD_URL"
+echo "Using download URL: $DOWNLOAD_URL"
 
 # Download and install Cursor
 echo "Downloading Cursor RPM..."
-curl -L -o /tmp/cursor.rpm "$DOWNLOAD_URL"
+if ! curl -L -f -o /tmp/cursor.rpm "$DOWNLOAD_URL"; then
+  echo "Error: Failed to download Cursor from $DOWNLOAD_URL"
+  echo "The download URL may be outdated. Please check https://cursor.com/downloads for the latest RPM URL"
+  exit 1
+fi
 
 echo "Installing Cursor..."
 rpm -i /tmp/cursor.rpm
