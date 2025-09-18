@@ -2,18 +2,24 @@
 set -euo pipefail
 
 # Setup script for Sunshine game streaming server
-# This script enables and configures the Sunshine service
+# This script prepares Sunshine configuration for first boot
 
 echo "Setting up Sunshine game streaming server..."
 
-# Enable and start the Sunshine service
-systemctl --user enable sunshine
-systemctl --user start sunshine
+# Create systemd user directory structure
+mkdir -p /etc/skel/.config/systemd/user/default.target.wants
+
+# Enable Sunshine service for all new users
+ln -sf /usr/lib/systemd/user/sunshine.service /etc/skel/.config/systemd/user/default.target.wants/sunshine.service
 
 # Set capabilities for KMS capture (required for Wayland)
 echo "Setting up KMS capture capabilities..."
-setcap cap_sys_admin+p $(readlink -f $(which sunshine))
+if command -v sunshine >/dev/null 2>&1; then
+    setcap cap_sys_admin+p $(readlink -f $(which sunshine))
+else
+    echo "Warning: sunshine command not found, skipping setcap"
+fi
 
 echo "Sunshine setup completed!"
-echo "Web interface will be available at https://localhost:47990"
-echo "Service is enabled and started"
+echo "Service will be enabled for new users on first login"
+echo "Web interface will be available at https://localhost:47990 after first boot"
