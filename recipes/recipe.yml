@@ -19,14 +19,18 @@ modules:
 
   - type: dnf
     repos:
+      copr: 
+        - "lizardbyte/stable"
       files:
         - https://negativo17.org/repos/fedora-steam.repo
     install:
       packages:
+        - sunshine
         - steam
 
   - type: script
     scripts:
       - install-cursor.sh
+      - setup-sunshine.sh
 
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
