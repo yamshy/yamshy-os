@@ -37,4 +37,8 @@ modules:
       - install-cursor.sh
       - setup-sunshine.sh
 
+  - type: justfiles
+    include:
+      - gaming/sunshine.just
+
   - type: signing # this sets up the proper policy & signing files for signed images to work fully
