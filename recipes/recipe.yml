@@ -15,11 +15,12 @@ modules:
   - type: files
     files:
       - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
+        destination: /
+        # copies files/system/* into your image's root folder /
 
   - type: dnf
     repos:
-      copr: 
+      copr:
         - "lizardbyte/stable"
       files:
         - https://negativo17.org/repos/fedora-steam.repo

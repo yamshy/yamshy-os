@@ -15,9 +15,11 @@ ln -sf /usr/lib/systemd/user/sunshine.service /etc/skel/.config/systemd/user/def
 # Set capabilities for KMS capture (required for Wayland)
 echo "Setting up KMS capture capabilities..."
 if command -v sunshine >/dev/null 2>&1; then
-    setcap cap_sys_admin+p $(readlink -f $(which sunshine))
+  sunshine_binary="$(command -v sunshine)"
+  sunshine_target="$(readlink -f "$sunshine_binary")"
+  setcap cap_sys_admin+p "$sunshine_target"
 else
-    echo "Warning: sunshine command not found, skipping setcap"
+  echo "Warning: sunshine command not found, skipping setcap"
 fi
 
 echo "Sunshine setup completed!"

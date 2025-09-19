@@ -1,0 +1,122 @@
+name: lint
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: lint-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Fast lint checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            workflows:
+              - '.github/workflows/**/*.yml'
+              - '.github/workflows/**/*.yaml'
+            yaml:
+              - '**/*.yml'
+              - '**/*.yaml'
+            json:
+              - '**/*.json'
+            shell:
+              - '**/*.sh'
+            recipes:
+              - 'recipes/**/*.yml'
+              - 'recipes/**/*.yaml'
+
+      - name: Install linting tools
+        if: >-
+          steps.changes.outputs.yaml == 'true' ||
+          steps.changes.outputs.json == 'true' ||
+          steps.changes.outputs.shell == 'true' ||
+          steps.changes.outputs.recipes == 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            curl jq shellcheck yamllint python3-jsonschema python3-yaml
+
+      - uses: rhysd/actionlint@v1
+        if: steps.changes.outputs.workflows == 'true'
+
+      - name: Lint YAML files
+        if: steps.changes.outputs.yaml == 'true'
+        run: yamllint .
+
+      - name: Validate JSON files
+        if: steps.changes.outputs.json == 'true'
+        run: jq --exit-status '.' renovate.json > /dev/null
+
+      - name: Run ShellCheck on scripts
+        if: steps.changes.outputs.shell == 'true'
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(git ls-files '*.sh')
+          if [ "${#scripts[@]}" -eq 0 ]; then
+            echo "No shell scripts to lint"
+            exit 0
+          fi
+          shellcheck --severity=style "${scripts[@]}"
+
+      - name: Validate BlueBuild recipes against schema
+        if: steps.changes.outputs.recipes == 'true'
+        run: |
+          set -euo pipefail
+          curl -fsSL https://schema.blue-build.org/recipe-v1.json -o /tmp/recipe-schema.json
+          python3 - <<'PY'
+import json
+import pathlib
+import sys
+
+import yaml
+from jsonschema import validators
+
+schema_path = pathlib.Path('/tmp/recipe-schema.json')
+schema = json.loads(schema_path.read_text())
+Validator = validators.validator_for(schema)
+Validator.check_schema(schema)
+validator = Validator(schema)
+
+recipe_root = pathlib.Path('recipes')
+recipe_files = sorted(recipe_root.rglob('*.yml')) + sorted(recipe_root.rglob('*.yaml'))
+if not recipe_files:
+    print('No recipe files found to validate.')
+    sys.exit(0)
+
+error_count = 0
+for recipe in recipe_files:
+    with recipe.open('r', encoding='utf-8') as handle:
+        data = yaml.safe_load(handle)
+    if data is None:
+        data = {}
+    errors = sorted(validator.iter_errors(data), key=lambda e: e.path)
+    if errors:
+        print(f'\nSchema errors in {recipe}:')
+        for err in errors:
+            location = '/'.join(str(part) for part in err.path)
+            if location:
+                print(f'  - {location}: {err.message}')
+            else:
+                print(f'  - {err.message}')
+        error_count += len(errors)
+
+if error_count:
+    print(f'\nValidation failed with {error_count} error(s).')
+    sys.exit(1)
+
+print(f'Validated {len(recipe_files)} recipe file(s) against the BlueBuild schema.')
+PY
