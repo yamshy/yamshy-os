@@ -27,6 +27,10 @@ modules:
       packages:
         - sunshine
         - steam
+    remove:
+      packages:
+        - code
+        - thunderbird
 
   - type: script
     scripts:
