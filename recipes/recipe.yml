@@ -34,6 +34,7 @@ modules:
 
   - type: script
     scripts:
+      - preserve-bluefin-justfiles.sh
       - install-cursor.sh
       - setup-sunshine.sh
 
