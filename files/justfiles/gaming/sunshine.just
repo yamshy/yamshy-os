@@ -23,14 +23,13 @@ setup-sunshine ACTION="":
     esac
 
     if [[ "${OPTION,,}" == "help" ]]; then
-        cat <<'USAGE'
-Usage: ujust setup-sunshine <option>
-  <option>: Specify the quick option to skip the prompt
-  Use 'enable' to enable the Sunshine service
-  Use 'disable' to disable the Sunshine service
-  Use 'portal' to open the Sunshine management portal
-  Use 'exit' to exit without making changes
-USAGE
+        printf '%s\n' \
+            "Usage: ujust setup-sunshine <option>" \
+            "  <option>: Specify the quick option to skip the prompt" \
+            "  Use 'enable' to enable the Sunshine service" \
+            "  Use 'disable' to disable the Sunshine service" \
+            "  Use 'portal' to open the Sunshine management portal" \
+            "  Use 'exit' to exit without making changes"
         exit 0
     fi
 
