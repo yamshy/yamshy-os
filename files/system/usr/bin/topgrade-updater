@@ -7,7 +7,8 @@ if [[ $- != *i* && -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
 fi
 
 exit_code=0
-if ! /usr/bin/topgrade --config /usr/share/ublue-os/topgrade.toml --keep "$@"; then
+# Skip Toolbx maintenance in Topgrade since Toolbox is not part of the image.
+if ! /usr/bin/topgrade --config /usr/share/ublue-os/topgrade.toml --keep --disable=toolbx "$@"; then
   exit_code=$?
   echo "Topgrade exited with status ${exit_code}" >&2
 fi
