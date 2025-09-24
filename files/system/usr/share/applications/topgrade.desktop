@@ -1,7 +1,7 @@
 [Desktop Entry]
 Name=Topgrade Updater
 Comment=Run Topgrade to update packages and tools
-Exec=/usr/local/bin/topgrade-updater
+Exec=/usr/bin/topgrade-updater
 Icon=system-software-update
 Terminal=true
 Type=Application
