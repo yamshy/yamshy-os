@@ -33,6 +33,7 @@ modules:
       packages:
         - code
         - thunderbird
+        - toolbox
 
   - type: script
     scripts:
