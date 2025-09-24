@@ -19,7 +19,8 @@ modules:
 
   - type: dnf
     repos:
-      copr: 
+      copr:
+        - "lilay/topgrade"
         - "lizardbyte/stable"
       files:
         - https://negativo17.org/repos/fedora-steam.repo
@@ -27,6 +28,7 @@ modules:
       packages:
         - sunshine
         - steam
+        - topgrade
     remove:
       packages:
         - code

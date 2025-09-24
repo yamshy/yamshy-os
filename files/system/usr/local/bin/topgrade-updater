@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Source Homebrew if available and we're not running interactively.
+if [[ $- != *i* && -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
+  source <(/home/linuxbrew/.linuxbrew/bin/brew shellenv)
+fi
+
+exit_code=0
+if ! /usr/bin/topgrade --config /usr/share/ublue-os/topgrade.toml --keep "$@"; then
+  exit_code=$?
+  echo "Topgrade exited with status ${exit_code}" >&2
+fi
+
+while true; do
+  echo
+  printf 'Choose an action:\n  [1] Shutdown\n  [2] Restart\n  [3] Exit\nSelection: '
+  if ! read -rsn1 choice; then
+    echo
+    break
+  fi
+  echo
+  if [[ -z "${choice}" ]]; then
+    break
+  fi
+  case "${choice}" in
+    1)
+      systemctl poweroff
+      break
+      ;;
+    2)
+      systemctl reboot
+      break
+      ;;
+    3)
+      break
+      ;;
+    *)
+      echo "Invalid selection. Press 1, 2, or 3."
+      ;;
+  esac
+done
+
+exit "${exit_code}"
