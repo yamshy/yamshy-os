@@ -7,8 +7,79 @@ if [[ $- != *i* && -x /home/linuxbrew/.linuxbrew/bin/brew ]]; then
 fi
 
 exit_code=0
-# Skip Toolbx maintenance in Topgrade since Toolbox is not part of the image.
-if ! /usr/bin/topgrade --config /usr/share/ublue-os/topgrade.toml --keep --disable=toolbx "$@"; then
+
+cleanup_config=""
+trap '[[ -n "${cleanup_config}" ]] && rm -f "${cleanup_config}"' EXIT
+
+# Prefer upstream wrapper scripts if the base image provides them.
+topgrade_cmd=()
+for candidate in \
+  /usr/libexec/ublue/topgrade-wrapper \
+  /usr/libexec/ublue/topgrade \
+  /usr/libexec/ublue-os/topgrade-wrapper; do
+  if [[ -x "${candidate}" ]]; then
+    topgrade_cmd=("${candidate}")
+    break
+  fi
+done
+
+if [[ ${#topgrade_cmd[@]} -eq 0 ]]; then
+  topgrade_cmd=(/usr/bin/topgrade)
+fi
+
+config_args=()
+if [[ "${topgrade_cmd[0]}" == "/usr/bin/topgrade" ]]; then
+  for config_candidate in \
+    /usr/share/ublue-os/topgrade.toml \
+    /usr/libexec/ublue/topgrade.toml \
+    /usr/libexec/ublue-os/topgrade.toml; do
+    if [[ -r "${config_candidate}" ]]; then
+      config_args=(--config "${config_candidate}")
+      break
+    fi
+  done
+
+  if [[ ${#config_args[@]} -eq 0 ]]; then
+    cleanup_config=$(mktemp)
+    cat <<'EOF' >"${cleanup_config}"
+# Yamshy OS topgrade configuration
+# See https://github.com/topgrade-rs/topgrade for supported options.
+
+[misc]
+# Topgrade runs as root inside the immutable image so interactive prompts
+# should be avoided.
+assume_yes = true
+no_self_update = true
+skip_notify = true
+
+[linux]
+# Ensure rpm-ostree upgrades run by default on the atomic base.
+rpm_ostree = true
+# Prefer bootc when it is available on the host but fall back to rpm-ostree.
+bootc = true
+
+[flatpak]
+# Flatpaks are installed system-wide on the image, so use sudo when needed.
+use_sudo = true
+
+[containers]
+# Podman is the container runtime shipped with Yamshy OS.
+runtime = "podman"
+
+[mandb]
+# Manual page indices are refreshed automatically in the background service.
+enable = false
+EOF
+    config_args=(--config "${cleanup_config}")
+  fi
+fi
+
+topgrade_args=(--keep --disable=toolbx)
+if [[ "${topgrade_cmd[0]}" == "/usr/bin/topgrade" ]]; then
+  topgrade_args+=(--disable=firmware)
+fi
+
+if ! "${topgrade_cmd[@]}" "${config_args[@]}" "${topgrade_args[@]}" "$@"; then
   exit_code=$?
   echo "Topgrade exited with status ${exit_code}" >&2
 fi
