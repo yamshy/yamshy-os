@@ -1,0 +1,19 @@
+# Topgrade configuration for yamshy-os
+# See https://github.com/topgrade-rs/topgrade for more information
+
+[misc]
+# Disable specific steps that don't apply to atomic Fedora
+disable = ["system"]
+
+# Don't ask for confirmations
+assume_yes = true
+
+# Display the time in step titles
+display_time = true
+
+# Cleanup temporary or old files
+cleanup = true
+
+[commands]
+# Add custom update commands here
+# Example: "Update Flatpaks" = "flatpak update -y"
