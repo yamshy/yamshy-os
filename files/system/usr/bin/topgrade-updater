@@ -65,16 +65,12 @@ use_sudo = true
 [containers]
 # Podman is the container runtime shipped with Yamshy OS.
 runtime = "podman"
-
-[mandb]
-# Manual page indices are refreshed automatically in the background service.
-enable = false
 EOF
     config_args=(--config "${cleanup_config}")
   fi
 fi
 
-topgrade_args=(--keep --disable=toolbx)
+topgrade_args=(--keep --disable=toolbx --disable=mandb)
 if [[ "${topgrade_cmd[0]}" == "/usr/bin/topgrade" ]]; then
   topgrade_args+=(--disable=firmware)
 fi
