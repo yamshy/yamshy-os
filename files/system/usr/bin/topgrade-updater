@@ -70,7 +70,7 @@ EOF
   fi
 fi
 
-topgrade_args=(--keep --disable=toolbx --disable=mandb)
+topgrade_args=(--keep --disable=toolbx)
 if [[ "${topgrade_cmd[0]}" == "/usr/bin/topgrade" ]]; then
   topgrade_args+=(--disable=firmware)
 fi
