@@ -1,0 +1,5 @@
+# Allow passwordless flatpak updates for topgrade
+# This enables unattended system updates via topgrade without sudo password prompts
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/flatpak update *
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/flatpak upgrade *
+%wheel ALL=(ALL) NOPASSWD: /usr/bin/flatpak repair *
