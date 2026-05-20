@@ -41,3 +41,5 @@ These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](ht
 ```bash
 cosign verify --key cosign.pub ghcr.io/yamshy/yamshy-os
 ```
+
+t
